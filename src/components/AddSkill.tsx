@@ -1,27 +1,26 @@
 import axios from "axios";
-import { useState } from "react";
 import { ISkillProps } from "./Skill";
+import { SubmitHandler, useForm } from "react-hook-form";
+
+type Inputs = ISkillProps;
 
 const AddSkill = () => {
-  const [name, setName] = useState<ISkillProps["name"]>("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Inputs>();
 
-  const handleSubmit = async () => {
-    await axios.post("http://localhost:5000/api/skill", {
-      name: name,
-    });
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    await axios.post("http://localhost:5000/api/skill", data);
   };
 
   return (
-    <form className="container" onSubmit={handleSubmit}>
+    <form className="container" onSubmit={handleSubmit(onSubmit)}>
       <h2>Add a Skill</h2>
       <label>Name</label>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => {
-          setName(e.target.value);
-        }}
-      />
+      <input type="text" {...register("name")} defaultValue="" />
+      {errors.name && <p>This field is required</p>}
       <br />
       <button className="button">Add skill</button>
     </form>
