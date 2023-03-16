@@ -5,5 +5,6 @@ export default interface IWilderProps {
   name: string;
   email: string;
   description: string;
+  avatar: string;
   skills: ISkillProps[];
 }

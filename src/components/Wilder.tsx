@@ -1,19 +1,20 @@
 import "../App.css";
 import Skill from "./Skill";
-import profile from "../assets/profile.png";
 import ISkillProps from "../interfaces/ISkill";
 import { useState } from "react";
 import axios from "axios";
 import IWilderProps from "../interfaces/IWilder";
 import { SubmitHandler, useForm } from "react-hook-form";
+import profile from "../assets/profile.png";
 interface WilderLocalProps {
   id: number;
   name: string;
   description: string;
+  avatar: string;
   skills: ISkillProps[];
 }
 
-function Wilder({ id, name, description, skills }: WilderLocalProps) {
+function Wilder({ id, name, description, skills, avatar }: WilderLocalProps) {
   const [modifyModale, setModifyModale] = useState<boolean>(false);
 
   const handleDelete = (id: number) => {
@@ -28,6 +29,9 @@ function Wilder({ id, name, description, skills }: WilderLocalProps) {
   } = useForm<Inputs>();
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    const formData = new FormData();
+    formData.append("avatar", data.avatar[0]);
+    await axios.put(`http://localhost:5000/api/wilder/${id}/avatar`, formData);
     await axios.put(`http://localhost:5000/api/wilder/${id}`, data);
   };
 
@@ -35,9 +39,15 @@ function Wilder({ id, name, description, skills }: WilderLocalProps) {
     <>
       {modifyModale ? (
         <article className="card">
-          <img src={profile} alt="wilder profile" />
-          <form className="container" onSubmit={handleSubmit(onSubmit)}>
-            <label>Name</label>
+          <form
+            className="container"
+            encType="multipart/form-data"
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <label>Avatar</label>
+            <input type="file" {...register("avatar")} />
+            {errors.name && <p>This field is required</p>}
+            <br /> <label>Name</label>
             <input type="text" {...register("name")} defaultValue={name} />
             {errors.name && <p>This field is required</p>}
             <br />
@@ -63,7 +73,10 @@ function Wilder({ id, name, description, skills }: WilderLocalProps) {
         </article>
       ) : (
         <article className="card">
-          <img src={profile} alt="wilder profile" />
+          <img
+            src={avatar == null ? profile : `http://localhost:5000/${avatar}`}
+            alt="wilder profile"
+          />
           <h3>{name}</h3>
           <p>{description}</p>
           <h4>Wild Skills</h4>
