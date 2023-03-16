@@ -1,6 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
-import { IWilderProps } from "./Wilder";
+import IWilderProps from "../interfaces/IWilder";
 import { SubmitHandler, useForm } from "react-hook-form";
 
 type Inputs = IWilderProps;

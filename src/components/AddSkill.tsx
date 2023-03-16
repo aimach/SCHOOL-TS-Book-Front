@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ISkillProps } from "./Skill";
+import ISkillProps from "../interfaces/ISkill";
 import { SubmitHandler, useForm } from "react-hook-form";
 
 type Inputs = ISkillProps;

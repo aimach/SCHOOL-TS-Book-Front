@@ -1,6 +1,6 @@
-import '../App.css';
+import "../App.css";
 
-function Footer() {
+function Footer(): JSX.Element {
   return (
     <footer>
       <div className="container">

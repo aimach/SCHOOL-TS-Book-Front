@@ -1,6 +1,6 @@
-import '../App.css';
+import "../App.css";
 
-function Header() {
+function Header(): JSX.Element {
   return (
     <header>
       <div className="container">

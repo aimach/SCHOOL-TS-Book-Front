@@ -1,10 +1,7 @@
 import "../App.css";
+import ISkillProps from "../interfaces/ISkill";
 
-export interface ISkillProps {
-  name: string;
-}
-
-function Skill({ name }: ISkillProps) {
+function Skill({ id, name }: ISkillProps) {
   return <li>{name}</li>;
 }
 
