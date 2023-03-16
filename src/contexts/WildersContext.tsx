@@ -31,8 +31,6 @@ export function WildersProvider({ children }: PropsWithChildren) {
     fetchData();
   }, []);
 
-  console.log("in context", wilders, fetchData);
-
   return (
     <WildersContext.Provider value={{ wilders, fetchData }}>
       {children}
