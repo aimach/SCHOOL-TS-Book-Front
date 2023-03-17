@@ -34,7 +34,6 @@ p {
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
-  padding: 24px;
 }
 
 header {
@@ -129,9 +128,9 @@ footer {
   margin: 0;
   padding: 0;
   list-style: none;
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 45% 45%;
+  gap: 10px;
 }
 
 .card .skills li {
@@ -169,14 +168,18 @@ label {
   margin-bottom: 1rem;
 }
 
-.skills {
-  height: 10vh;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
-}
-
 input {
   border: 1px solid #f76c6c;
   border-radius: 5px;
+}
+
+.modifySkill {
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }

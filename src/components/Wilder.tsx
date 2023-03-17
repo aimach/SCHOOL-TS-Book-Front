@@ -6,6 +6,8 @@ import axios from "axios";
 import IWilderProps from "../interfaces/IWilder";
 import { SubmitHandler, useForm } from "react-hook-form";
 import profile from "../assets/profile.png";
+import { useWilders } from "../contexts/WildersContext";
+
 interface WilderLocalProps {
   id: number;
   name: string;
@@ -16,6 +18,7 @@ interface WilderLocalProps {
 
 function Wilder({ id, name, description, skills, avatar }: WilderLocalProps) {
   const [modifyModale, setModifyModale] = useState<boolean>(false);
+  const [idSkill, setIdSkill] = useState<string>("");
 
   const handleDelete = (id: number) => {
     axios.delete(`http://localhost:5000/api/wilder/${id}`);
@@ -33,6 +36,13 @@ function Wilder({ id, name, description, skills, avatar }: WilderLocalProps) {
     formData.append("avatar", data.avatar[0]);
     await axios.put(`http://localhost:5000/api/wilder/${id}/avatar`, formData);
     await axios.put(`http://localhost:5000/api/wilder/${id}`, data);
+  };
+  const { dataSkills } = useWilders();
+
+  const addSkill = async () => {
+    await axios.post(`http://localhost:5000/api/wilder/${id}`, {
+      skills: [parseInt(idSkill)],
+    });
   };
 
   return (
@@ -67,6 +77,27 @@ function Wilder({ id, name, description, skills, avatar }: WilderLocalProps) {
               <Skill {...skill} key={skill.id} />
             ))}
           </ul>
+          <div className="modifySkill">
+            <label>Skills</label>
+            <br />
+            <select
+              name="skills"
+              id="skills"
+              onChange={(e) => setIdSkill(e.target.value)}
+            >
+              {dataSkills.map((skill) => {
+                return (
+                  <option value={skill.id} key={skill.id}>
+                    {skill.name}
+                  </option>
+                );
+              })}
+            </select>
+            <br />
+            <button className="button" onClick={addSkill}>
+              Add skill
+            </button>
+          </div>
           <button className="button" onClick={() => setModifyModale(false)}>
             Get back
           </button>
@@ -85,12 +116,14 @@ function Wilder({ id, name, description, skills, avatar }: WilderLocalProps) {
               <Skill {...skill} key={skill.id} />
             ))}
           </ul>
-          <button className="button" onClick={() => setModifyModale(true)}>
-            Modify
-          </button>
-          <button className="button" onClick={() => handleDelete(id)}>
-            Delete
-          </button>
+          <div>
+            <button className="button" onClick={() => setModifyModale(true)}>
+              Modify
+            </button>
+            <button className="button" onClick={() => handleDelete(id)}>
+              Delete
+            </button>
+          </div>
         </article>
       )}
     </>
