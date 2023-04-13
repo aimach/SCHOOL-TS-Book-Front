@@ -1,12 +1,12 @@
 import "../App.css";
-import Skill from "./Skill";
 import ISkillProps from "../interfaces/ISkill";
 import { useState } from "react";
-import axios from "axios";
 import IWilderProps from "../interfaces/IWilder";
 import { SubmitHandler, useForm } from "react-hook-form";
 import profile from "../assets/profile.png";
 import { useWilders } from "../contexts/WildersContext";
+import close from "../assets/close.png";
+import { gql, useMutation } from "@apollo/client";
 
 interface WilderLocalProps {
   id: number;
@@ -16,14 +16,48 @@ interface WilderLocalProps {
   skills: ISkillProps[];
 }
 
+const UPDATE_WILDER = gql`
+  mutation updateWilder(
+    $description: String!
+    $name: String!
+    $updateWilderId: Float!
+  ) {
+    updateWilder(description: $description, name: $name, id: $updateWilderId)
+  }
+`;
+
+const DELETE_WILDER = gql`
+  mutation deleteWilder($deleteWilderId: Float!) {
+    deleteWilder(id: $deleteWilderId)
+  }
+`;
+
+const ADD_SKILL_WILDER = gql`
+  mutation addSkillToWilder($idSkill: Float!, $idWilder: Float!) {
+    addSkillToWilder(idSkill: $idSkill, idWilder: $idWilder) {
+      id
+      name
+      email
+      description
+    }
+  }
+`;
+
+const DELETE_SKILL_WILDER = gql`
+  mutation deleteSkillToWilder($idSkill: Float!, $idWilder: Float!) {
+    deleteSkillToWilder(idSkill: $idSkill, idWilder: $idWilder) {
+      id
+      name
+      email
+      description
+    }
+  }
+`;
+
 function Wilder({ id, name, description, skills, avatar }: WilderLocalProps) {
   const [modifyModale, setModifyModale] = useState<boolean>(false);
-  const [idSkill, setIdSkill] = useState<string>("");
 
-  const handleDelete = (id: number) => {
-    axios.delete(`http://localhost:5000/api/wilder/${id}`);
-  };
-
+  // modify Wilder
   type Inputs = IWilderProps;
   const {
     register,
@@ -31,39 +65,70 @@ function Wilder({ id, name, description, skills, avatar }: WilderLocalProps) {
     formState: { errors },
   } = useForm<Inputs>();
 
+  const [updateWilder] = useMutation(UPDATE_WILDER);
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    const formData = new FormData();
-    formData.append("avatar", data.avatar[0]);
-    await axios.put(`http://localhost:5000/api/wilder/${id}/avatar`, formData);
-    await axios.put(`http://localhost:5000/api/wilder/${id}`, data);
-  };
-  const { dataSkills } = useWilders();
-
-  const addSkill = async () => {
-    await axios.post(`http://localhost:5000/api/wilder/${id}`, {
-      skills: [parseInt(idSkill)],
+    await updateWilder({
+      variables: {
+        description: data.description,
+        name: data.name,
+        updateWilderId: id,
+      },
     });
+    fetchDatas();
+  };
+
+  // delete Wilder
+  const [deleteFunction] = useMutation(DELETE_WILDER);
+  const handleDelete = async (id: number) => {
+    await deleteFunction({
+      variables: { deleteWilderId: id },
+    });
+    fetchDatas();
+  };
+
+  // display skills
+  const { dataSkills, fetchDatas } = useWilders();
+
+  // add skill to Wilder
+  const [idSkill, setIdSkill] = useState<string>("");
+  const [addSkillToWilderFunction] = useMutation(ADD_SKILL_WILDER);
+  const addSkill = async () => {
+    await addSkillToWilderFunction({
+      variables: {
+        idSkill: parseInt(idSkill),
+        idWilder: id,
+      },
+    });
+    fetchDatas();
+  };
+
+  // delete skill to Wilder
+  const [deleteSkillToWilderFunction] = useMutation(DELETE_SKILL_WILDER);
+  const handleDeleteSkill = async (skillId: number) => {
+    await deleteSkillToWilderFunction({
+      variables: {
+        idSkill: skillId,
+        idWilder: id,
+      },
+    });
+    fetchDatas();
   };
 
   return (
     <>
       {modifyModale ? (
         <article className="card">
-          <form
-            className="container"
-            encType="multipart/form-data"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            <label>Avatar</label>
+          <form encType="multipart/form-data" onSubmit={handleSubmit(onSubmit)}>
+            {/* <label>Avatar</label>
             <input type="file" {...register("avatar")} />
-            {errors.name && <p>This field is required</p>}
+            {errors.name && <p>This field is required</p>} */}
             <br /> <label>Name</label>
             <input type="text" {...register("name")} defaultValue={name} />
             {errors.name && <p>This field is required</p>}
             <br />
             <label>Description</label>
             <input
-              type="text"
+              type="textarea"
               {...register("description")}
               defaultValue={description}
             />
@@ -74,11 +139,20 @@ function Wilder({ id, name, description, skills, avatar }: WilderLocalProps) {
           </form>
           <ul className="skills">
             {skills.map((skill) => (
-              <Skill {...skill} key={skill.id} />
+              <li key={skill.id}>
+                {skill.name}
+                <img
+                  src={close}
+                  width="15px"
+                  height="15px"
+                  alt="cross"
+                  onClick={() => handleDeleteSkill(skill.id)}
+                />
+              </li>
             ))}
           </ul>
           <div className="modifySkill">
-            <label>Skills</label>
+            <label>Add a skill</label>
             <br />
             <select
               name="skills"
@@ -104,16 +178,18 @@ function Wilder({ id, name, description, skills, avatar }: WilderLocalProps) {
         </article>
       ) : (
         <article className="card">
-          <img
-            src={avatar == null ? profile : `http://localhost:5000/${avatar}`}
-            alt="wilder profile"
-          />
+          <div className="card-img">
+            <img
+              src={avatar == null ? profile : `http://localhost:5000/${avatar}`}
+              alt="wilder profile"
+            />
+          </div>
           <h3>{name}</h3>
           <p>{description}</p>
           <h4>Wild Skills</h4>
           <ul className="skills">
             {skills.map((skill) => (
-              <Skill {...skill} key={skill.id} />
+              <li key={skill.id}>{skill.name}</li>
             ))}
           </ul>
           <div>

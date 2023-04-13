@@ -1,8 +1,17 @@
-import axios from "axios";
 import ISkillProps from "../interfaces/ISkill";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { gql, useMutation } from "@apollo/client";
 
 type Inputs = ISkillProps;
+
+const ADD_SKILL = gql`
+  mutation AddSkill($name: String!) {
+    createSkill(name: $name) {
+      id
+      name
+    }
+  }
+`;
 
 const AddSkill = () => {
   const {
@@ -11,8 +20,12 @@ const AddSkill = () => {
     formState: { errors },
   } = useForm<Inputs>();
 
+  const [addSkill, { loading }] = useMutation(ADD_SKILL);
+
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    await axios.post("http://localhost:5000/api/skill", data);
+    await addSkill({
+      variables: { name: data.name },
+    });
   };
 
   return (
@@ -22,7 +35,9 @@ const AddSkill = () => {
       <input type="text" {...register("name")} defaultValue="" />
       {errors.name && <p>This field is required</p>}
       <br />
-      <button className="button">Add skill</button>
+      <button disabled={loading} className="button">
+        {loading ? "Submitting..." : "Add skill"}
+      </button>
     </form>
   );
 };

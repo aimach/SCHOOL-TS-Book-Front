@@ -1,51 +1,50 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  PropsWithChildren,
-} from "react";
+import { createContext, useContext, PropsWithChildren } from "react";
 import IWilderProps from "../interfaces/IWilder";
 import ISkillProps from "../interfaces/ISkill";
-import axios from "axios";
+import { useQuery, gql } from "@apollo/client";
 
 interface WilderContextType {
   wilders: IWilderProps[];
   dataSkills: ISkillProps[];
-  fetchDataWilders: () => Promise<void> | void;
-  fetchDataSkills: () => Promise<void> | void;
+  fetchDatas: () => Promise<void> | void;
 }
 
 export const WildersContext = createContext<WilderContextType>({
   wilders: [],
   dataSkills: [],
-  fetchDataWilders: () => {},
-  fetchDataSkills: () => {},
+  fetchDatas: () => {},
 });
 
+const GET_WILDERS_AND_SKILLS = gql`
+  query getAllWilders {
+    getAllWilders {
+      id
+      name
+      email
+      description
+      skills {
+        id
+        name
+      }
+    }
+    getAllSkills {
+      id
+      name
+    }
+  }
+`;
+
 export function WildersProvider({ children }: PropsWithChildren) {
-  const [wilders, setWilders] = useState<IWilderProps[]>([]);
-  const [dataSkills, setSkills] = useState<ISkillProps[]>([]);
+  const { data, refetch } = useQuery(GET_WILDERS_AND_SKILLS);
+  const wilders = data?.getAllWilders || [];
+  const dataSkills = data?.getAllSkills || [];
 
-  const fetchDataWilders = async () => {
-    const result = await axios.get("http://localhost:5000/api/wilder");
-    setWilders(result.data);
+  const fetchDatas = async () => {
+    await refetch();
   };
-
-  const fetchDataSkills = async () => {
-    const result = await axios.get("http://localhost:5000/api/skill");
-    setSkills(result.data);
-  };
-
-  useEffect(() => {
-    fetchDataWilders();
-    fetchDataSkills();
-  }, []);
 
   return (
-    <WildersContext.Provider
-      value={{ wilders, dataSkills, fetchDataWilders, fetchDataSkills }}
-    >
+    <WildersContext.Provider value={{ wilders, dataSkills, fetchDatas }}>
       {children}
     </WildersContext.Provider>
   );

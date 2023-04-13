@@ -1,18 +1,39 @@
-import axios from "axios";
 import IWilderProps from "../interfaces/IWilder";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { gql, useMutation } from "@apollo/client";
 
-type Inputs = IWilderProps;
+const ADD_WILDER = gql`
+  mutation addWilder($description: String!, $email: String!, $name: String!) {
+    createWilder(description: $description, email: $email, name: $name) {
+      id
+      name
+      email
+      description
+      skills {
+        id
+        name
+      }
+    }
+  }
+`;
 
 const AddForm = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<Inputs>();
+  } = useForm<IWilderProps>();
 
-  const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    await axios.post("http://localhost:5000/api/wilder", data);
+  const [addWilder, { loading }] = useMutation(ADD_WILDER);
+
+  const onSubmit: SubmitHandler<IWilderProps> = async (data) => {
+    await addWilder({
+      variables: {
+        name: data.name,
+        email: data.email,
+        description: data.description,
+      },
+    });
   };
 
   return (
@@ -30,7 +51,9 @@ const AddForm = () => {
       <input type="text" {...register("description")} defaultValue="" />
       {errors.description && <p>This field is required</p>}
       <br />
-      <button className="button">Add Wilder</button>
+      <button disabled={loading} className="button">
+        {loading ? "Submitting..." : "Add wilder"}
+      </button>
       <br />
     </form>
   );
